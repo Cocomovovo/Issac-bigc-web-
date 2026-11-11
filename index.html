@@ -1,0 +1,618 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolyU Design - Web Portal (Ultimate Edition)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8F8F8; overflow: hidden; }
+        
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 視圖切換動畫 */
+        .view-screen { transition: opacity 0.4s ease-in-out; position: absolute; inset: 0; width: 100%; height: 100%; }
+        .fade-out { opacity: 0; pointer-events: none; z-index: 0; }
+        .fade-in { opacity: 1; pointer-events: auto; z-index: 40; }
+
+        /* 彈出視窗動畫 */
+        .modal-enter { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-enter-active { opacity: 1; pointer-events: auto; }
+        .modal-scale { transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-enter-active .modal-scale { transform: scale(1); }
+
+        /* 表單與互動特效 */
+        input[type="radio"] { accent-color: #3B82F6; width: 1.25rem; height: 1.25rem; cursor: pointer; }
+        input[type="radio"]:disabled { accent-color: #9CA3AF; cursor: not-allowed; opacity: 0.6; }
+        .custom-checkbox input:checked + div { background-color: #3B82F6; border-color: #3B82F6; }
+        .custom-checkbox input:checked + div svg { display: block; }
+        .font-signature { font-family: 'Dancing Script', cursive; }
+        .progress-grow { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Smart Animate 特效 */
+        .panel-transition { transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+        .card-unfocused { opacity: 0.4; filter: blur(1.5px) grayscale(50%); transform: scale(0.96); transition: all 0.4s ease; }
+        .card-focused { opacity: 1; filter: blur(0); transform: scale(1); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-color: #d1d5db; transition: all 0.4s ease; z-index: 10; }
+        .timeline-line { position: absolute; left: 1.1rem; top: 2.5rem; bottom: -0.5rem; width: 4px; border-radius: 2px; }
+    </style>
+</head>
+<body class="text-gray-900 antialiased selection:bg-[#8F1329] selection:text-white">
+
+    <div id="app-container" class="w-full h-screen relative bg-white">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: Loading Splash Screen -->
+        <!-- ========================================== -->
+        <div id="view-1" class="view-screen bg-white flex items-center justify-center z-50 fade-in">
+            <div class="w-[280px] md:w-[350px] animate-pulse">
+                <svg viewBox="0 0 394 70" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto">
+                    <rect x="106.652" y="10" width="50" height="50" fill="url(#pattern0_1_4299)"/>
+                    <rect x="166.652" y="17" width="2" height="36" rx="1" fill="#DFDFDF"/>
+                    <rect x="178.652" y="10" width="108.696" height="50" fill="url(#pattern1_1_4299)"/>
+                    <defs>
+                        <pattern id="pattern0_1_4299" patternContentUnits="objectBoundingBox" width="1" height="1"><use xlink:href="#image0_1_4299" transform="scale(0.004)"/></pattern>
+                        <pattern id="pattern1_1_4299" patternContentUnits="objectBoundingBox" width="1" height="1"><use xlink:href="#image1_1_4299" transform="matrix(0.003125 0 0 0.00679348 0 -0.586957)"/></pattern>
+                        <image id="image0_1_4299" width="250" height="250" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6CAYAAACI7Fo9AAAQAElEQVR4AeydCYAbVfnAv2+yB23plaSAoohSaBJuqajIDQIqIuhfxBtErVxtsi0UD3Txr8jVJC20igj4F0+8UEAolEM88ADlTNJSoWBBSpPttoVidzfz/b8v29nubnPMJPNmJslk39u53vve9743v3nXHBr4v7awQC8c3bFs6v7TFwX3e2Nyl73fIuvXwSGdbZF5P5Og+TZoHQsIzOlQ7O2pUOyCVCh6bTocuZOXT7MfmBpaN7i1Y6hPw+LzWOz4l6xvCW0Z4GNb2T+XDEVXpEPRb6eCkZ5UOHJ075577tQ6lvFz4oPe5OfA4hnRvZOh2JdSoeg9DHM/Af0FgJZwts4jwpN4OZN9tZq7i4/vgQDHEcAXAHEREN4/dfOE/lQw+mAqHP364nDkEA7juya2gA96ExYew/e6lNS8oejfdR1WIdA3ORvHs5/E3i7XDQhHAMElOuHDfCHJpYORryZnxOTCYVcavhyHLKASdIey0D7JCGTJUGQxEjwDUvMCzHYw97MI8VLUaVUyFL0tNX3WuxxM20+qQQv4oDdoQCeiJ6dH9k+FIr9hyFYi4FxuYrvZf0YEOBk07Y8pbtovDsWOc8IGfhqNWcAHvTH7KY2dmnbQNK49L0cNHwbAUwA8NnjKTXsdaAXreNs1U2e9mfXznUct4IPu0YJJhaKfhMB/uQaHhayiDJjxwpsOuYYf6tCe5Br+kuv8KTtPFlKzgu5JY9qh1BXhWZO5hryZZf0AAHeB5vlNBISvbwm9+qclu+y3V/Oo3R6a+qB7qJx5NP2tXaQ9wjXkJzyklkVV8G3FYvEfyXD0DIsR/eAKLeCDrtC4VkSnQpEP8mj6nzjO3uyb3U3hvPwkHYp8kwcO+brV7Nlpfv190D1Qhgz5mQD4M4bCzdF0XM/1+S/WVBYlasmk3RU3k0Zlf5bsYNaphnf9KAz3DzwFr2Gm33njyokJ1cZcieb6xWzpiEgj8bHvlAxhMkDyWDkBEC8lW27k8koDQcjoquqCbl6WvRNgHB4tTC2H5OavRNXbOsy2C7eSYFNDTqfiNJcX8YGkzu1eOG0c6u5XjGfyKPxS5PB2FkVQ9Q4IJBriL9h2zoGOav0+0Rf7iFeVnSBAPG0GqNeMYSiAwx7R1fg7mbvszct6HwiIg9CXcPLhmuwOk8RrskbuRmmzlRrR2NO6Qbus59TO+jYEOkZ0SMR8Vds053GHlG6RaThJbVSSBRyv0IAVx5GYnscPNgJ9zZzzd6UoLPhpSbngTdwqSaXKTRPNNcr8cFMwNJkKGp6zCI5I3YE6XAHC3T6W2Y396zP/IHTrenihewVnDFXYAfEAwOdWtM245sOdANyXpo+iWueQdYCcE3uaciN3CBDca0Z2NPTY4ejTr/jiLVescxBbHWbO1C3dN+8D3t99m8q0HsBtFQwep17kFvvk0ux0BBuBWIvG876EuzpcGxOpWSluU4a3cXHnYYciOCSC/IrX+S0LTmBnWvYSy1Fsitwk9bsTQM6w41TeZ6cz9zP2VVmFuVwTW6tT27Ij2/IPK+DdjRvK/uyCcse5cas8vgcfTsdiuwwK7E4GDmMm+u3c2inm+vMKd2V6Msu4bTrcol8phdd6rOz8gcGugNN1WfX6rKyw5EIANOh6FIAsDzAxHHscAy5teb6+ETn9z35b50Cx/B+d2AHXJIKxUbu/RfIdUSpyZU9icZ5reTWDaB2FoPKRVspSO39UrOzDHf67AQHNBPsnge91FwPR6/nYncJ8vqa66zvDk5gLxbhOEJ4doeD6ncwE7SYR+PPSwUj72TI7+QkXYCcijrqH71ofeYlTr9hJ7BzDetOM54Y9iYZoPM06AI5N9evR4KzGz4j6hIgkG+x9PqnWsks6M8+pw+B1OxraoVVcJxhh2sAcQXLNvVedA5nryP8wvz8yvvtFCrNeM6TO7BLn70JmvGeBZ3bdDgtVGquf8bOk8KCLG6u19cnr5WGwI46HgWEz9QKq+C4wG7lnejjVKh/kxO+hPvl36tfQuWYAjvL95vxFUzkSdClJk+HYjcy7C7dDCM1ubUHVCrYt+JuGaADXT+OA7hRs3OyjrtvczP7GypTZflXuFazSzPewzW750AXyLm5fiMAnanypKgiW1lNPj7NRH9uDbpXs49XR9k2At20sZDdYdRfRYKu1+xdgQevnBHbTUXeGpHpKdC3Qw62PYVl0TgMeWOj6xbTA6nZkeAYcKcZb1Vdy+EF8v5C7rNctrrlyHVGkJrdtWY8QLRTp/u8BrtnQOcTQRuuyaFtIDfOYwN2l0bjDTVsX1qH3D4VMm784wAAEABJREFUfNjH2tIToN8CEGhXyI3iENi1Ih7dKrAjN9edrskNWxpLH3bDEgCugy6QvxCKcp+8/Wry7cUwvNYqsHsB8mGLAviwD1vCVdAF8rWhqLx08CNA9BgC/JrVWopEXyPEc5DwdPFA+GFdg/fJOiHNAYIEAcgI7s2AIC/7f57j1eHUj65bVUpg7xwsjcbXmSerKdob3kuQGzkT2AHRnXl26bMTLV+y28wZhj5uLF0F/fnJ+0wPaPD13QvZSYm+3EFcIB9M8OhsvC/39Z585jvxvszPxSf6Mr+Yvz77O1nvyee+m+jLpnsK2Us47KcS+ewRvHxT91BHUAM8no24cNsFo5/XqziB3N6bYaokZunQBRtXPkuBIbmppqlg9yLkhuET+Uyva7Dz1FtxqHOFm7BrhiHcWC7YvCo/b3326dMBio2mf+7GJzbMK2TuZeivlAvGxsKuMzSid3HL4Oss+yn2o5x3ITeU7Hn56WeaCXb0QJ/csF2lZSLfvrC7CnqlArFjfy88MDSvL/dnbhl8jeHfT9fwrXxFTyLBTzdO9mZNPj7fo2D/9/hjXtrGJoDcsFe7wt6yoBsFayznr8/8kwt5frwv+9HeNWv+a+z3+lJgLxbhCNZzDXvPuWaC3DAenwe93L1z7XbZ4mDn752eZ28b0I1Cbsal3BvPsB/NunsK9maEnG1Ycty9s/G1VCWRVv45flOND7qV4nExrNdgb2bIjWJsJ9h90I1Sb4KlV2BvBciN4m4X2D0B+pKZM7tTM2IHpYOxD6dCkS+mQ5Ebk8HoHalQ9P5kKPowL59mn2H/d/b3sL+V/bUcZp58Gyw5IzaT59W522UUX+suBXbS8N0AtNatXOqEj/UCOHbvuup8Cuw8UOvePLtOd6ueenMF9F6IdS0OxY5LhmOXMrAPFDd0bgCd/klItwDgZQR4FiK8FwCOZnrlxf0zASDKfjZ7mSv/AC/P4zBp0Oh3qNPT6VB0Hcv6pcCfnj7rAD7esq5nfWY1aZrMs7/gRibZ7qnUqNdSuaGD3WnKAJ2LsO/PA3T3lofdnpw6BjrXAJq8VjgZiiyeGtL/rQOtQKKvcjaOYj+BfaNO7jz6IJ+EaYbgMYb+2WQoenk6PGtWo4K9GH8YdpQBOjdgRwBanA7F5nrRNvXqJLBzxtwZjQfYXx/sUvaIq3LQrwjPmpwMR+ZPDUWfJY3+gIB8cuAu9RaGhXh7IsBCIi2XCsf+yOCfKhcbC/E9H1Rg1zRwq2ZHAkqnWqxmd7MZz/aMdCpqxisD/apdD9iFT4LLukh7HgmvZmr2YO+OI3oXJ/zraaHYU6lg7DPXwSGdvN0STu4s1FyEXWp2LueRt8u2glGlZgfES13Ki5JmvO2g98LRHalgNN4xNLiKTwL5Csc0lwy2Q7IEFAGkG14NbXl0MY8R7BDAYzsWz4juzd2dmhfIUbBb/hiCDVnmhpO8XXb7q6RtkGm7CLGlFaGtBrtWNvN17lwUnnXM1NC6RwEhxSKmsvek4zMzpvMYQTIU+4UZkNzIhJyYug73c3fnvkXB/d5YSweBXUeSZrwP+zhjJUORi9mWT6VC0VPHHaq62Uqw2wL6ddwU5n5wr0aavEZ436rW89BBBPoQg/Qk6/5xD6kFBuSs0+7s99Kw+ODV06Jv4vWqbn4+t4qb8f4A3SgrcdkuQMBv8S7prt2SDEVP43XTTmBHt74IA/YN0DUMempaZM/XQlseBKKvsfUalscynHaTWfcf8tX+Bzyu4PinicZndhzkxuE9AwG4JxnaR8A39pVdSs3OsEvN7spoPAGlvTIan+RBYC7bq0YZqpOh/ZlV2GWAjuO5MhrP9ox0ccuu0XvjGwIzHY6cDAF8nADeMcqYzbr6SR5X+KuZmlNVBitAbiS3N0LgvmvCs14PNX4CO2Lp5RWuNOP55HR9ND4dii7cNgg83lol2PnCbqkZL7CDSwN0bM+GR+PrBp0N9Uki/BVb0dpnfTiCh92+XHM+JHfpOa1jDcgNdfYZIu1+M7DH8ytXut1nd6tml5qcK5/LDaOVWbZdM74u0JPB6Dw23v+xF4PxoqXc60Cn+9Mzokc6lSuTkBvqmIZd+uxuws41kePN+FQw0lOhJjfsZyxLNXu7NOMtg54ORr6KCGkA4G4LtOpvGulwx6IZsYNVZ9Ai5IY6AvuK9C777WrsqLQU2ItQPI6P/4e90w4F9pRDN9Wkw9ELAXGRhUzWDTunc6mFdGwLyvYsNeNT0w6yNG1tCfR0ODaHXOqn2GYp84J21nS6LxmKHWo+irWQdUJuJBKlYvH3qXD0dcaOSssFhVU5rtllNN6VPjuA+ttlpSYngisr2aDK/rpgd3s0HgNb77zu9YdMrJKvMYdMg86Qn0KkLx0T22sb9uszjafglnNf8+12i24QckOdWUho6qsgUrMz7DIa7wrsXBMpa8YL5FzDWqnJDfsZy7pglwE6bta6NBoP79iy9bWfyg1qRiaqLU2BngzPms3TFD8DwAC0328an6R32Vmz2wR5qSRYt1JTzsyTTwI7QOB4BHipFNnZf8i62j4aLwNvDUJuWKFu2Dl9V5rx3FJ6/5TQS6YucDVBXzojtjOS9iMexdzJsEgbLqVmv3tRMNrwNKKdkI8qh/2LQ50rrp68T3jUvrKricKTWUC9JZrxPCicwOHnKMrmtY6ddcHuZjMeAecmTdwEVBP0AV3/DhtsH/bt7qZqCCu4BpHHauuyhSLIh3UhOCDQqZmCXabeEPVjOaJrA3TcHZrL6dftSpAjJOsWUDliXbDHC1nX3kGHADdeXePOyaqgp0KRMwHQU7eHglu/4XQncQ3y29T0WfI03PAek/+VQm7ogHhgoDNwT3JKLGjsqrQU2ANU+uDFukphFO7HRprx0idHNZAbWa4bdpea8dMCHfDDXqj8ibWKoC+buv90Vnr07YOGEdp9OQU0bbk8wGPWEI5AbiiDcBB20L3XTo6EoMZvbl8mwzW7tFBcqdm5j7nYas2eCkbjfF6a6pfWyH6tw3XB7loznuDwaeHI2ZUyVRH0rR1D3wSCmn2+SoJbfP8kjbTbzcDuKOSG0Rn2wU5cYbZmZ9hlNN4N2AEQtoLJ3zDkIE9GmozRcLC6YHerGU+El1e6wJcFffhGEfp8w2ZqbQETGfbbUuGIDGyVzakrkBuaIBwAnSS1tbGn4lKa8USlF06+XDGQ/Qd0TvPseD5znRnRLkBuqCWwL+7dc09Lg9ECOzh/z0lwsAu+Zig+elkW9ADplwG4PpXWDwAPs7+bEH7Oo/63A8EfYPjtp7zJR9x3k4CwbM1uCXL786GzXp/rKWR/bVZ0T1/mKSKNB+jICdgF8s9ymjeZ0Y8H3uaB2j55RTUQ4KUiFE/orePrPtKMB8dhx3OW7LLfXuMztAPoi6bteyBfaU8cH9CB7QEAvI1BPosCQ3slCtnp7N/G/sSefPZ0Pmnfn+jLHpko5N4Ixe4gIr0fAL7Nfj17N12pGb941BtrvAB5oi9zo1WjMHhPaToex2WgEnbLkCOCNNeZOas5aiw8J/jSEBSPWVBYlatXkguwdxSLxfnj9d0B9ECALuJAnEf+74zrB4T/HerofGOikDmFQf6+fG+sWtKJ/kf74/nc7YlC9tyJhYnyjPanOPy4L6byHufcRK5Cb0sHo+92G3Iezv58PZAbppq3IfukQtgtQS4Ddc0MuWFTF2A/86pdD9jFSF+WY0CXl0gQ0OlywAnPTfIbAp2D+yTy2a9euO7xumqROfDIIAN/8+6F7IHcnj+P9d7E3g03gfPzG9LhQU5cLj68cNTxtQbmxPuyNzSa6nbYwc7WkmXI+VxMc16QvaOOE2y4Jh+vcMLZTzZPCAwNjnlh5xjQUQOpGTvGK6lgu59lnsZN8s/OfWm1LScTX52KPYXsMm72yxNn0rfnJBx3E/his5vjqQKUIE/0Zb+3Q9p17hDYSSduxtsCuyXIU6HYBa0EuVEETsLOF6uzegFG+B5ZEWV0xI/IUrH/j17UjuZa+FYV6Uizf2L3xKMYuNtVyPegTM4qnG8n5EYeezbknuCBqCORB6SMfXUsCRHP5f7/TWbiJsORzwPQYg7LyfJ/Z906nfD4BQ30yWupK7Bzxpx4EGb3KeHIEYY+I6CnwtG3sgIx44Ci5TrS8Mj5/U89pkh+SeycFx/Zsqmw62nEo/WlHa37j3hQcg5fNGVQUkku5aTXdTqBhdfT8pKa3PQUWjoUOR8Jv8Np8anI/x10nKCMrh/NFyTlYz0y9cZX5ytUZ08jPMNIYwR0IuDWr7Hb/iUb8r886PZe+bqI/dJ3lNgLDwxNyk/8OAH+csejLbGHCOkLPCh5vercSM1eRzNeIDc9hZYKRc/jslrCeeFThf876DjBlwgCx8pFzalk+eL8RW65/EhleoTwP7cAlJ44HQEdgXgOVV2yOsD8RD77D3Up7Ch5Dg/UTSpM+CgCmJ5P3lGKJ/eUIO/J577rlHYCO+r68Xyxzo+kWXnFMuQs6hr2XFT830HHCZYgT8hTfc6mS0MdXXM4yZXs1TiC8L9nxA4Q4SXQlwRnTgFAGcQCJT+CB/kKpqx5WU3nOQx7f6HUhPlNtXBNdIwQ8RwnITdsE9+w8nEs6sfVgN0S5MlQ9FyW31aQc35LjmeaXgVdP5s3iL0Sh0UqvfuwBHqRuuRpLFWj7aTr2lzkdoqSnJgQ2guZgY0F5K4J3mYiuJeDlCA3e9uoiowI7PqQVqlmtww5nxfXsp684P8OOk7QlZp8fBYTG1b+CQl+Nn6/bduIpQG5EugQoHfaJngHQXSb6sG3HZIss0NgD0wf+DAQ3FHmcDPs4uY6nusm5IaRpDxLsAMUjH289CFnI9Tj2HCXcTwltTp3yQ9j2SPzbMq+Ia6BJgMskpbrfu7q1VsDwcEPcdPzTteVsaZACfKefEZGpK3FVBS6BHtRO47FC+x8rqKVgbdzuEatXpOzYBWO0/VETT46b6XxD8AHRu+zcf110jUv1ejcdNjbRsGjRb2woZC5f/QOt9cF9o07v/ZBRLrLbV1Mpi9X+vO8BLmht8AOGh6PgJ/maSlT8+Q8un4Ox5eXjCIvHXWcoOcgHzEAqmu+F7XOmRqfRcw5qAEd4c5eAB5wH8mOJ1Z616z5rzZt6NQmaMZz8cAFbg1kmimsxPrMo/FC5odmwqaC0c9yOFdqcgB6WSc8PuHw6Drn15TT9AFlXUrScaa2aPI+8iaSnU1pYzEQEv7eYhTHgkvNThM3f5gTlC/A8sJzjpjy8xlyqf08p5xVhZLh2Be4yyTTgaVWpNX4jYSXmhygw5GbYerVc27f6rUc93n2tjtNozdp3Roq+3YaafCk7VrbKLBn7drXaMLmUxioe20Ua4co4kGUuT2F7DI7hLktQ2pyJJILFjPntDZlanKnVTCdHmZNB7UQkM/vyVpRA2WgD1DxXxb0cSWowD6pe+IpCOiVsQQuF7ggXshJE9cVm9iZaDocmyh77agAABAASURBVAMA4olfzIsBDdIAAAAASUVORK5CYII="/>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: Login Page -->
+        <!-- ========================================== -->
+        <div id="view-2" class="view-screen flex w-full bg-[#E5E5E5] fade-out">
+            <div class="w-full lg:w-[40%] h-full flex flex-col justify-center px-12 lg:px-24 relative z-10">
+                <div class="mb-12">
+                    <svg width="201" height="70" viewBox="0 0 201 70" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <rect x="10" y="10" width="50" height="50" fill="url(#pattern0_1_4491)"/>
+                        <rect x="70" y="17" width="2" height="36" rx="1" fill="#DFDFDF"/>
+                        <rect x="82" y="10" width="108.696" height="50" fill="url(#pattern1_1_4491)"/>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold mb-8 text-gray-900">Sign in with your NetID and NetPassword</h2>
+                <div class="space-y-4 mb-8">
+                    <input type="text" placeholder="NetID" class="w-full bg-[#D4D4D4]/30 border-none rounded-xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all">
+                    <input type="password" placeholder="NetPassword" class="w-full bg-[#D4D4D4]/30 border-none rounded-xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all">
+                </div>
+                <button onclick="navigateWithLoading('view-3', 1500)" class="w-full bg-[#786F66] text-white font-bold rounded-full py-4 mb-6 hover:bg-[#605851] transition-colors shadow-sm">Sign in</button>
+                <button onclick="showAccessDenied()" class="text-[#3B82F6] text-sm font-medium text-center w-full hover:underline">Sign in as Exchange Student (Demo Denied)</button>
+            </div>
+            <div class="hidden lg:block lg:w-[60%] h-full bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1600&auto=format&fit=crop');">
+                <div class="absolute inset-0 bg-gradient-to-r from-[#E5E5E5] via-transparent to-transparent opacity-50"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: Discover -->
+        <!-- ========================================== -->
+        <div id="view-3" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <!-- Sidebar (Active: Rocket) -->
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg><div class="text-[8px] font-bold leading-tight tracking-tight text-black text-center mt-1">POLYU<br>DES'GN</div></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 text-gray-800 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/><path d="M102.713 6.27448C101.851 4.44111 99.2746 1.86328 97.4412 1.00087C94.8001 -0.24127 92.9101 -0.0914241 89.1313 0.208139C83.2859 0.671526 76.4682 1.78845 70.2977 4.25743C58.3153 9.05214 46.0839 24.4072 41.0556 29.1823C40.3718 29.8316 40.0296 30.1571 39.7491 30.3023C39.4336 30.4657 39.3076 30.5018 38.9688 30.5288C38.6678 30.5528 38.1428 30.4201 37.0927 30.1552C33.574 29.2676 22.6541 25.6676 13.2547 35.067C9.95338 38.3684 6.87508 42.3037 4.20046 46.1583C1.23119 50.4376 -0.253294 52.5771 0.0379228 54.5359C0.273562 56.1206 1.491 57.7206 2.95543 58.3704C4.76561 59.1735 7.38792 58.2564 12.6319 56.4211L20.4322 53.6907C23.1855 52.727 24.5632 52.2455 25.9226 52.2454C27.1243 52.2454 28.3112 52.516 29.3939 53.0374C29.8648 53.2643 30.5132 53.7631 31.1334 54.2908C32.3383 55.3161 32.6784 57.0073 32.1077 58.483C31.3229 60.5121 31.8088 62.8134 33.3472 64.3518L39.1663 70.171C40.7368 71.7414 43.068 72.2732 45.1643 71.5396C46.6889 71.0062 48.4037 71.3781 49.4484 72.6099C49.9666 73.221 50.4529 73.8564 50.6762 74.3197C51.1976 75.4024 51.4682 76.5893 51.4682 77.791C51.4681 79.1504 50.9866 80.5281 50.0229 83.2814L47.2925 91.0817C45.4572 96.3257 44.5401 98.948 45.3432 100.758C45.993 102.223 47.593 103.44 49.1777 103.676C51.1365 103.967 53.276 102.482 57.5553 99.5131C61.4099 96.8385 65.3452 93.7602 68.6466 90.4589C78.046 81.0595 74.446 70.1396 73.5584 66.6209C73.2935 65.5708 73.1608 65.0458 73.1848 64.7448C73.2118 64.406 73.2479 64.28 73.4113 63.9644C73.5565 63.6839 73.882 63.3418 74.5313 62.658C79.3064 57.6297 94.6615 45.3983 99.4562 33.4159C101.925 27.2458 103.042 20.4292 103.506 14.5844C103.806 10.8053 103.955 8.9157 102.713 6.27448ZM82.0816 21.8695C86.7679 26.5558 86.7679 34.1538 82.0816 38.8401C77.3954 43.5264 69.7974 43.5264 65.1111 38.8401C60.4248 34.1538 60.4248 26.5558 65.1111 21.8695C69.7974 17.1832 77.3953 17.1832 82.0816 21.8695Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><mask id="stroke0_42_9923" fill="white"><path d="M0 30.4C0 19.759 0 14.4385 2.07088 10.3742C3.89247 6.7991 6.7991 3.89247 10.3742 2.07088C14.4385 0 19.759 0 30.4 0H48.6C59.241 0 64.5615 0 68.6258 2.07088C72.2009 3.89247 75.1075 6.7991 76.9291 10.3742C79 14.4385 79 19.759 79 30.4V73.6C79 84.241 79 89.5615 76.9291 93.6258C75.1075 97.2009 72.2009 100.108 68.6258 101.929C64.5615 104 59.241 104 48.6 104H30.4C19.759 104 14.4385 104 10.3742 101.929C6.7991 100.108 3.89247 97.2009 2.07088 93.6258C0 89.5615 0 84.241 0 73.6V30.4Z"/></mask><path d="M30.4 104H48.6C59.241 104 64.5615 104 68.6258 101.929C72.2009 100.108 75.1075 97.2009 76.9291 93.6258C79 89.5615 79 84.241 79 73.6V30.4C79 19.759 79 14.4385 76.9291 10.3742C75.1075 6.7991 72.2009 3.89247 68.6258 2.07088C64.5615 0 59.241 0 48.6 0H30.4C19.759 0 14.4385 0 10.3742 2.07088C6.7991 3.89247 3.89247 6.7991 2.07088 10.3742C0 14.4385 0 19.759 0 30.4V73.6C0 84.241 0 89.5615 2.07088 93.6258C3.89247 97.2009 6.7991 100.108 10.3742 101.929C14.4385 104 19.759 104 30.4 104Z" stroke-width="14" stroke="currentColor" mask="url(#stroke0_42_9923)"/><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/><path d="M47.5 0C73.7335 0 95 21.2665 95 47.5C95 59.1187 90.8255 69.7606 83.8984 78.0146L83.9004 78.0176C83.7519 78.1944 83.6012 78.3693 83.4502 78.5439C83.4164 78.5831 83.3826 78.6221 83.3486 78.6611C83.135 78.9066 82.9187 79.1496 82.7002 79.3906C82.6819 79.4108 82.6648 79.432 82.6465 79.4521C82.4444 79.6743 82.2385 79.893 82.0322 80.1113C81.9516 80.1967 81.8713 80.2824 81.79 80.3672C81.6076 80.5575 81.4238 80.7464 81.2383 80.9336C81.1456 81.0271 81.0524 81.1201 80.959 81.2129C80.7611 81.4093 80.5616 81.604 80.3604 81.7969C80.29 81.8643 80.2192 81.9311 80.1484 81.998C79.926 82.2086 79.7021 82.4177 79.4756 82.624C79.4338 82.6621 79.3915 82.6994 79.3496 82.7373C79.1179 82.9469 78.8843 83.1543 78.6484 83.3594C78.6197 83.3843 78.5913 83.4097 78.5625 83.4346C78.3351 83.6313 78.1052 83.8251 77.874 84.0176C77.7868 84.0902 77.7 84.1633 77.6123 84.2354C77.3997 84.4098 77.1854 84.5821 76.9697 84.7529C76.886 84.8193 76.802 84.8854 76.7178 84.9512C76.4835 85.1342 76.2476 85.3154 76.0098 85.4941C75.9342 85.5509 75.8581 85.6068 75.7822 85.6631C75.5294 85.8508 75.2752 86.0369 75.0186 86.2197C74.9932 86.2377 74.9677 86.2555 74.9424 86.2734C74.6639 86.4709 74.3835 86.6658 74.1006 86.8574C74.081 86.8707 74.0616 86.8842 74.042 86.8975C73.7522 87.0931 73.4593 87.2843 73.165 87.4736C73.1318 87.495 73.0987 87.5168 73.0654 87.5381C72.7834 87.7186 72.499 87.8957 72.2129 88.0703C72.1557 88.1052 72.0984 88.1401 72.041 88.1748C71.7772 88.3343 71.5122 88.492 71.2451 88.6465C71.1636 88.6936 71.0818 88.7404 71 88.7871C70.0882 89.3073 69.1573 89.7976 68.209 90.2578C68.1468 90.288 68.0848 90.3187 68.0225 90.3486C67.7151 90.4961 67.4057 90.6402 67.0947 90.7812C67.0654 90.7945 67.0362 90.8081 67.0068 90.8213C66.6915 90.9635 66.3746 91.1028 66.0557 91.2383C65.997 91.2632 65.9377 91.2868 65.8789 91.3115C65.2182 91.5891 64.5505 91.8535 63.875 92.1016C63.8545 92.1091 63.834 92.1165 63.8135 92.124C63.1029 92.3839 62.3842 92.6261 61.6582 92.8525C61.6354 92.8596 61.6127 92.8669 61.5898 92.874C61.2399 92.9826 60.8885 93.0879 60.5352 93.1885C60.5023 93.1978 60.4694 93.2065 60.4365 93.2158C60.0865 93.3147 59.7351 93.41 59.3818 93.501C59.3672 93.5048 59.3526 93.5089 59.3379 93.5127C58.6163 93.6978 57.8878 93.865 57.1533 94.0166C57.1081 94.0259 57.0629 94.0357 57.0176 94.0449C56.6677 94.1161 56.3165 94.1837 55.9639 94.2471C55.9258 94.2539 55.8877 94.2599 55.8496 94.2666C55.4883 94.3307 55.1258 94.3924 54.7617 94.4482C54.698 94.458 54.6341 94.467 54.5703 94.4766C53.917 94.574 53.2594 94.6579 52.5977 94.7285C52.5007 94.7389 52.4037 94.749 52.3066 94.7588C52.1854 94.771 52.0639 94.7827 51.9424 94.7939C51.864 94.8012 51.7855 94.8085 51.707 94.8154C51.5607 94.8283 51.4142 94.8401 51.2676 94.8516C51.2119 94.8559 51.1563 94.8601 51.1006 94.8643C50.951 94.8755 50.8013 94.8857 50.6514 94.8955C50.5616 94.9014 50.4718 94.9077 50.3818 94.9131C50.2992 94.918 50.2165 94.9222 50.1338 94.9268C50.0047 94.9338 49.8755 94.9403 49.7461 94.9463C49.6271 94.9518 49.5079 94.9573 49.3887 94.9619C49.3077 94.9651 49.2266 94.9679 49.1455 94.9707C49.0317 94.9746 48.9178 94.9784 48.8037 94.9814C48.6597 94.9853 48.5155 94.9876 48.3711 94.9902C48.2979 94.9915 48.2247 94.9941 48.1514 94.9951C47.9463 94.9979 47.7409 94.9989 47.5352 94.999C47.5247 94.999 47.5143 95 47.5039 95L47.502 94.999L47.5 95C47.2838 95 47.068 94.998 46.8525 94.9951C46.7747 94.9941 46.6969 94.9917 46.6191 94.9902C46.465 94.9874 46.311 94.9847 46.1572 94.9805C46.0882 94.9785 46.0192 94.9759 45.9502 94.9736C45.8176 94.9694 45.6851 94.9653 45.5527 94.96C45.454 94.956 45.3554 94.9509 45.2568 94.9463C45.12 94.9399 44.9832 94.9333 44.8467 94.9258C44.7613 94.9211 44.676 94.9163 44.5908 94.9111C44.4663 94.9036 44.342 94.8952 44.2178 94.8867C44.1275 94.8806 44.0373 94.8748 43.9473 94.8682C43.7986 94.8572 43.6502 94.8444 43.502 94.832C43.4352 94.8265 43.3684 94.8223 43.3018 94.8164C42.6465 94.759 41.995 94.6882 41.3477 94.6045C41.2988 94.5982 41.25 94.5914 41.2012 94.585C40.8191 94.5343 40.4387 94.4776 40.0596 94.418C39.7703 94.3724 39.4818 94.3252 39.1943 94.2744C39.1024 94.2582 39.0107 94.2413 38.9189 94.2246C38.6738 94.1798 38.4294 94.1325 38.1855 94.084C38.016 94.0503 37.8467 94.016 37.6777 93.9805C37.4417 93.9308 37.2064 93.8793 36.9717 93.8262C36.8609 93.8011 36.7501 93.7768 36.6396 93.751C36.3813 93.6905 36.1239 93.6272 35.8672 93.5625C35.7064 93.522 35.5459 93.4806 35.3857 93.4385C35.1425 93.3745 34.8999 93.309 34.6582 93.2412C34.514 93.2008 34.3702 93.1589 34.2266 93.1172C34.054 93.067 33.8818 93.0159 33.71 92.9639C33.4931 92.8982 33.2771 92.8304 33.0615 92.7617C32.8977 92.7095 32.7343 92.6565 32.5713 92.6025C32.2764 92.505 31.9827 92.4049 31.6904 92.3018C31.6233 92.2781 31.5562 92.2545 31.4893 92.2305C31.2987 92.1623 31.1084 92.094 30.9189 92.0234C30.8455 91.996 30.7725 91.9672 30.6992 91.9395C12.7581 85.1531 0 67.818 0 47.5C0 21.2665 21.2665 0 47.5 0ZM47.5 7C25.1325 7 7 25.1325 7 47.5C7 56.4904 9.93136 64.7951 14.8877 71.5146C22.1781 63.9201 33.8474 59 47 59C60.4911 59 72.4214 64.1766 79.666 72.1064C84.8918 65.2855 88 56.7565 88 47.5C88 25.1325 69.8675 7 47.5 7Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button onclick="navigateWithLoading('view-6', 1000)" class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg hover:bg-[#605851] transition"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto">
+                <header class="h-24 px-10 flex justify-between items-center bg-[#F8F8F8]/80 backdrop-blur-md sticky top-0 z-10">
+                    <div><p class="text-[#8F1329] text-xs font-bold tracking-wider mb-1">17 JUN <span class="text-gray-500 font-normal">MONDAY</span></p><h1 class="text-2xl font-bold">Discover</h1></div>
+                    <div class="relative w-80">
+                        <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" viewBox="0 0 88 96" fill="currentColor"><path d="M38.625 0C59.954 0 77.25 17.2354 77.25 38.5029C77.2499 49.1299 72.9279 58.7497 65.9463 65.7148L86.2744 85.9785C88.5746 88.2713 88.5746 91.9884 86.2744 94.2812C83.9759 96.5723 80.2516 96.5723 77.9531 94.2812L56.3301 72.7295C51.0252 75.4617 45.0047 77.0059 38.625 77.0059C17.2961 77.0058 0.000103412 59.7703 0 38.5029C0 17.2354 17.2961 8.83659e-05 38.625 0ZM38.625 8.81836C22.1726 8.81845 8.84082 22.112 8.84082 38.5029C8.84092 54.8938 22.1727 68.1864 38.625 68.1865C55.0774 68.1865 68.4091 54.8938 68.4092 38.5029C68.4092 22.1119 55.0774 8.81836 38.625 8.81836Z"/><circle cx="38.5" cy="38.5" r="23.5"/></svg>
+                        <input type="text" placeholder="Search for competition" class="w-full bg-gray-200/70 border-none rounded-full pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 transition">
+                    </div>
+                </header>
+                <div class="px-10 pb-16 max-w-7xl mx-auto">
+                    <div class="w-full h-[380px] bg-cover bg-center relative rounded-[2rem] overflow-hidden shadow-sm mb-12 group cursor-pointer" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1600&auto=format&fit=crop');">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-opacity group-hover:opacity-90"></div>
+                        <div class="absolute bottom-10 left-10 text-white w-2/3">
+                            <p class="text-sm font-medium mb-2 text-gray-200 uppercase tracking-wider">Available Now</p>
+                            <h2 class="text-4xl md:text-5xl font-bold mb-5 leading-tight">Architecture MasterPrize 2026</h2>
+                            <button class="bg-[#D98A5F] text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-[#c27951] transition transform group-hover:translate-x-2">Learn more</button>
+                        </div>
+                    </div>
+                    <div class="mb-12">
+                        <h2 class="text-2xl font-bold mb-6">Latest Competitions</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div><div class="bg-gray-200 rounded-2xl h-40 mb-3 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=500&auto=format&fit=crop');"></div><h3 class="font-bold text-base">Sustainable Design</h3></div>
+                            <div><div class="bg-gray-200 rounded-2xl h-40 mb-3 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=500&auto=format&fit=crop');"></div><h3 class="font-bold text-base">Future Workspace</h3></div>
+                            <div><div class="bg-gray-200 rounded-2xl h-40 mb-3"></div><h3 class="font-bold text-base">Competition 3</h3></div>
+                            <div><div class="bg-gray-200 rounded-2xl h-40 mb-3"></div><h3 class="font-bold text-base">Competition 4</h3></div>
+                        </div>
+                    </div>
+                    <div class="mb-12">
+                        <h2 class="text-2xl font-bold mb-6">Popular Awards</h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div class="bg-white rounded-2xl p-4 flex items-center shadow-sm cursor-pointer hover:shadow-md transition"><div class="w-16 h-16 rounded-xl bg-red-100 flex items-center justify-center text-red-600 font-bold text-2xl mr-4">R</div><div class="flex-1"><p class="text-[10px] text-[#D98A5F] font-bold tracking-wider mb-0.5">GLOBAL</p><h4 class="font-bold text-base">Red Dot Award</h4></div></div>
+                            <div class="bg-white rounded-2xl p-4 flex items-center shadow-sm cursor-pointer hover:shadow-md transition"><div class="w-16 h-16 rounded-xl bg-[#FF3B30] flex items-center justify-center text-white font-bold text-2xl mr-4">iF</div><div class="flex-1"><p class="text-[10px] text-[#D98A5F] font-bold tracking-wider mb-0.5">NEW YORK CITY</p><h4 class="font-bold text-base">iF Student Design Award</h4></div></div>
+                            <div class="bg-white rounded-2xl p-4 flex items-center shadow-sm cursor-pointer hover:shadow-md transition"><div class="w-16 h-16 rounded-xl bg-[#FFD600] flex items-center justify-center text-black font-bold text-xl mr-4 leading-tight text-center">D&<br>AD</div><div class="flex-1"><p class="text-[10px] text-[#D98A5F] font-bold tracking-wider mb-0.5">LONDON</p><h4 class="font-bold text-base">D&AD New Blood Awards</h4></div></div>
+                            <div class="bg-white rounded-2xl p-4 flex items-center shadow-sm cursor-pointer hover:shadow-md transition"><div class="w-16 h-16 rounded-xl bg-black flex items-center justify-center text-white font-serif text-2xl mr-4">DFA</div><div class="flex-1"><p class="text-[10px] text-[#D98A5F] font-bold tracking-wider mb-0.5">HONG KONG</p><h4 class="font-bold text-base">DFA Design for Asia Awards</h4></div></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: Dashboard -->
+        <!-- ========================================== -->
+        <div id="view-4" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 text-gray-800 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><mask id="stroke0_42_9923" fill="white"><path d="M0 30.4C0 19.759 0 14.4385 2.07088 10.3742C3.89247 6.7991 6.7991 3.89247 10.3742 2.07088C14.4385 0 19.759 0 30.4 0H48.6C59.241 0 64.5615 0 68.6258 2.07088C72.2009 3.89247 75.1075 6.7991 76.9291 10.3742C79 14.4385 79 19.759 79 30.4V73.6C79 84.241 79 89.5615 76.9291 93.6258C75.1075 97.2009 72.2009 100.108 68.6258 101.929C64.5615 104 59.241 104 48.6 104H30.4C19.759 104 14.4385 104 10.3742 101.929C6.7991 100.108 3.89247 97.2009 2.07088 93.6258C0 89.5615 0 84.241 0 73.6V30.4Z"/></mask><path d="M30.4 104H48.6C59.241 104 64.5615 104 68.6258 101.929C72.2009 100.108 75.1075 97.2009 76.9291 93.6258C79 89.5615 79 84.241 79 73.6V30.4C79 19.759 79 14.4385 76.9291 10.3742C75.1075 6.7991 72.2009 3.89247 68.6258 2.07088C64.5615 0 59.241 0 48.6 0H30.4C19.759 0 14.4385 0 10.3742 2.07088C6.7991 3.89247 3.89247 6.7991 2.07088 10.3742C0 14.4385 0 19.759 0 30.4V73.6C0 84.241 0 89.5615 2.07088 93.6258C3.89247 97.2009 6.7991 100.108 10.3742 101.929C14.4385 104 19.759 104 30.4 104Z" stroke-width="14" stroke="currentColor" mask="url(#stroke0_42_9923)"/><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button onclick="navigateWithLoading('view-6', 1000)" class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg hover:bg-[#605851] transition"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-12 lg:p-16">
+                <div class="max-w-[1200px] mx-auto">
+                    <h1 class="text-4xl font-bold mb-8">My Dashboard</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                        <div class="bg-white rounded-3xl p-8 flex flex-col justify-between h-44 shadow-sm"><div class="flex items-center space-x-4"><span class="text-4xl font-bold">9</span></div><p class="text-gray-400 text-sm font-medium">Applications You Have Submitted</p></div>
+                        <div class="bg-white rounded-3xl p-8 flex flex-col justify-between h-44 shadow-sm cursor-pointer hover:shadow-md transition"><div><p class="text-gray-400 text-sm font-medium mb-1">Latest Subsidy Distributed</p><p class="text-4xl font-bold">$4,000</p></div><div class="flex justify-between items-center border-t border-gray-100 pt-4 mt-2"><span class="text-sm font-bold text-gray-900">View Previous Records</span></div></div>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-6">Applications</h2>
+                    <div class="mb-10">
+                        <p class="text-[11px] text-gray-400 font-bold tracking-wider uppercase mb-4">URGENT</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div onclick="navigateTo('view-13')" class="bg-white rounded-3xl p-6 shadow-sm cursor-pointer hover:shadow-md transition border border-transparent hover:border-gray-100">
+                                <h3 class="font-bold text-lg leading-tight mb-1">Sustainable Product Design Competition</h3>
+                                <p class="text-xs text-gray-400 mb-4">Created on 28 September, 2026</p>
+                                <div class="flex justify-between items-center mb-6"><span class="bg-[#D98A5F] text-white text-xs font-medium px-3 py-1.5 rounded-lg">Revise Requested</span><span class="text-[#8F1329] text-xs font-medium">1 day remain</span></div>
+                                <div class="border-t border-gray-100 pt-4 flex justify-between items-center"><span class="text-xs text-gray-400">Reference Code</span><span class="text-sm font-bold">SD-0000-0000</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-10">
+                        <p class="text-[11px] text-gray-400 font-bold tracking-wider uppercase mb-4">RECENT</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div onclick="navigateTo('view-13')" class="bg-white rounded-3xl p-6 shadow-sm cursor-pointer hover:shadow-md transition border border-transparent hover:border-gray-100">
+                                <h3 class="font-bold text-lg leading-tight mb-1">Sustainable Product Design Competition</h3>
+                                <p class="text-xs text-gray-400 mb-4">Created on 12 October, 2026</p>
+                                <div class="mb-6"><span class="bg-[#7BA07A] text-white text-xs font-medium px-3 py-1.5 rounded-lg inline-block">Endorsed</span></div>
+                                <div class="border-t border-gray-100 pt-4 flex justify-between items-center"><span class="text-xs text-gray-400">Reference Code</span><span class="text-sm font-bold">SD-2025-1115</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: Profile -->
+        <!-- ========================================== -->
+        <div id="view-5" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 text-gray-800 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button onclick="navigateWithLoading('view-6', 1000)" class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg hover:bg-[#605851] transition"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-12 lg:p-16">
+                <div class="max-w-[1200px] mx-auto">
+                    <h1 class="text-4xl font-bold mb-10">Profile</h1>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-7 bg-white rounded-[2.5rem] p-10 relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[500px]">
+                            <div class="absolute -top-16 -left-16 opacity-[0.04] pointer-events-none"><svg width="400" height="400" viewBox="0 0 48 48" fill="none"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="black"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="black"/></svg></div>
+                            <div class="flex justify-end relative z-10"><div class="text-right font-bold text-2xl leading-none tracking-tighter text-black">POLYU<br>DES'GN</div></div>
+                            <div class="mt-auto pt-20 relative z-10">
+                                <p class="text-xs text-gray-400 font-bold tracking-wider mb-2 uppercase">Local Student</p>
+                                <h2 class="text-3xl font-bold mb-2 text-gray-900">CHIANG Shing Hang, Issac</h2>
+                                <p class="text-lg text-gray-800 font-medium mb-8">26021436D • Year 3</p>
+                                <div class="border-t border-gray-100 pt-6"><p class="text-sm text-gray-400">Available Until 2027</p></div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-5 flex flex-col space-y-6">
+                            <div class="bg-white rounded-[2rem] p-8 shadow-sm"><p class="text-sm text-gray-400 font-medium mb-2">Your Studying Programme</p><p class="text-lg font-bold text-gray-900 leading-snug">BA (Hons) in Design (Interaction Design)</p></div>
+                            <div class="pt-4">
+                                <p class="text-xs text-gray-400 font-bold tracking-wider mb-4 ml-4 uppercase">Others</p>
+                                <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden">
+                                    <a href="#" class="block p-7 border-b border-gray-50 hover:bg-gray-50 transition"><span class="font-medium text-gray-900 text-lg">Settings</span></a>
+                                    <a href="#" class="block p-7 border-b border-gray-50 hover:bg-gray-50 transition"><span class="font-medium text-gray-900 text-lg">FQA & Support</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 6: New App Start (Modal) -->
+        <!-- ========================================== -->
+        <div id="view-6" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full flex items-center justify-center p-6">
+                <div class="bg-white rounded-[2.5rem] p-12 md:p-16 w-full max-w-[800px] shadow-sm flex flex-col">
+                    <div class="mb-8 text-[#786F66]"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline><path d="M18.5 15.5l3 3-7 7-4 1 1-4 7-7z" fill="white" stroke="currentColor" stroke-width="1.5"></path></svg></div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-black mb-6 tracking-tight">Create a New Application</h1>
+                    <p class="text-xl md:text-2xl font-medium text-black mb-2">You are applying to participate in a new competition.</p>
+                    <p class="text-lg md:text-xl text-gray-400 mb-16 leading-relaxed">Please note that your application will be reviewed by your programme teacher and administators.</p>
+                    <button onclick="navigateWithLoading('view-7', 1000)" class="w-full bg-[#786F66] text-white font-medium rounded-full py-5 text-lg hover:bg-[#605851] transition shadow-md">Continue</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 7: Section 1 -->
+        <!-- ========================================== -->
+        <div id="view-7" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-10 lg:p-14">
+                <div class="max-w-[1100px] mx-auto">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
+                        <div class="mb-6 lg:mb-0"><h1 class="text-3xl font-bold text-gray-900 mb-1">Create New Application</h1><h2 class="text-xl font-bold text-gray-800">Section 1</h2></div>
+                        <div class="flex space-x-2 w-full lg:w-3/5">
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Applicant<br>Information</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-500 text-center leading-tight">Competition &<br>Project Details</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-500 text-center leading-tight mt-1.5">Funding</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-500 text-center leading-tight">Review &<br>Declaration</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-[#E8F5E9] rounded-2xl p-6 mb-8 flex items-start space-x-4"><svg class="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg><div><p class="text-base font-bold text-green-800 mb-1">Done & Done!</p><p class="text-sm text-green-700 leading-relaxed">All information are automatically filled as you already signed in this app. Please look carefully to ensure that all information below are correct.</p></div></div>
+                    <div class="bg-white rounded-[2rem] p-10 shadow-sm mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Personal Information</h3>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-6 mb-10">
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Last name</label><input type="text" value="Chiang" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">First name</label><input type="text" value="Shing Hang Issac" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-4">Gender</label><div class="flex items-center space-x-6 mt-2"><label class="flex items-center space-x-2"><input type="radio" name="gender" checked><span class="text-sm font-medium text-gray-800">Male</span></label><label class="flex items-center space-x-2"><input type="radio" name="gender"><span class="text-sm font-medium text-gray-800">Female</span></label><label class="flex items-center space-x-2"><input type="radio" name="gender"><span class="text-sm font-medium text-gray-800">Other</span></label></div></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">HKID</label><input type="text" value="S059623(1)" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                            <div class="col-span-12 md:col-span-8"><label class="block text-sm font-medium text-gray-800 mb-2">Email</label><input type="email" value="issac200606@yahoo.com" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Telephone No.</label><div class="flex space-x-2"><div class="relative w-28"><select class="w-full bg-white border border-gray-200 rounded-2xl pl-4 pr-8 py-4 text-gray-800 font-medium appearance-none focus:outline-none"><option>+852</option></select><svg class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div><input type="text" value="9542 2272" readonly class="flex-1 bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div></div>
+                            <div class="col-span-12 md:col-span-8"><label class="block text-sm font-medium text-gray-800 mb-2">Email Confirmation</label><input type="email" value="issac200606@yahoo.com" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                        </div>
+                        <div class="border-t border-gray-100 mb-8"></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Academic Information</h3>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-6">
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Student ID</label><input type="text" value="26021436D" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                            <div class="col-span-12 md:col-span-8"><label class="block text-sm font-medium text-gray-800 mb-2">PolyU Email</label><input type="email" value="26021436d@connect.polyu.hk" readonly class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Study Year</label><div class="relative"><select id="study-year" class="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-gray-800 font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"><option value="" disabled selected>Select Year</option><option value="Year 1">Year 1</option><option value="Year 2">Year 2</option><option value="Year 3">Year 3</option><option value="Year 4">Year 4</option></select><svg class="w-4 h-4 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div>
+                            <div class="col-span-12 md:col-span-8"><label class="block text-sm font-medium text-gray-800 mb-2">Programme</label><div class="relative"><select id="programme" disabled class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-800 font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-not-allowed transition-colors"><option value="">Please select Study Year first</option></select><svg class="w-4 h-4 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end pb-10">
+                        <p class="text-sm text-gray-400 mb-4">All progress are automatically saved.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                            <button onclick="navigateTo('view-4')" class="w-full bg-white text-[#8F1329] font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-red-50 transition">Cancel Application</button>
+                            <button onclick="navigateTo('view-4')" class="w-full bg-white text-[#3B82F6] font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-blue-50 transition">Save Draft and Leave</button>
+                            <button onclick="navigateWithLoading('view-8', 1000)" class="w-full bg-[#786F66] text-white font-bold rounded-full py-4 shadow-sm hover:bg-[#605851] transition">Confirm & Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 8: Section 2 -->
+        <!-- ========================================== -->
+        <div id="view-8" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-10 lg:p-14">
+                <div class="max-w-[1100px] mx-auto">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
+                        <div class="mb-6 lg:mb-0"><h1 class="text-3xl font-bold text-gray-900 mb-1">Create New Application</h1><h2 class="text-xl font-bold text-gray-800">Section 2</h2></div>
+                        <div class="flex space-x-2 w-full lg:w-3/5">
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Applicant<br>Information</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2 overflow-hidden"><div id="dynamic-progress-bar" class="h-full bg-[#3B82F6] progress-grow" style="width: 15%;"></div></div><span id="dynamic-progress-text" class="text-[10px] font-bold text-[#3B82F6] text-center leading-tight transition-colors">Competition &<br>Project Details</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-500 text-center leading-tight mt-1.5">Funding</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-500 text-center leading-tight">Review &<br>Declaration</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-[2rem] p-10 shadow-sm mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Competition/Award's Information</h3>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-6 mb-10">
+                            <div class="col-span-12 md:col-span-6"><label class="block text-sm font-medium text-gray-800 mb-2">Title <span class="text-[#8F1329]">*Required</span></label><div class="relative"><select id="comp-title" data-track="true" class="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-gray-800 font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"><option value="" disabled selected>Select a competition...</option></select><svg class="w-4 h-4 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div>
+                            <div class="col-span-12 md:col-span-6"><label class="block text-sm font-medium text-gray-800 mb-2">URL <span class="text-[#8F1329]">*Required</span></label><input type="url" id="comp-url" data-track="true" placeholder="Auto-filled URL or enter manually" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Category</label><input type="text" placeholder="Enter Category (if any)" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-4">Recognition Level</label><div class="flex items-center space-x-4 mt-2"><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="recognition" checked><span class="text-sm font-medium text-gray-800">Local</span></label><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="recognition"><span class="text-sm font-medium text-gray-800">National</span></label><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="recognition"><span class="text-sm font-medium text-gray-800">International</span></label></div></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Estimate Result Announcement Date</label><div class="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-gray-400 font-medium text-center tracking-widest">DD &nbsp;/&nbsp; MM &nbsp;/&nbsp; YYYY</div></div>
+                        </div>
+                        <div class="border-t border-gray-100 mb-8"></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Project Details</h3>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-6">
+                            <div class="col-span-12"><label class="block text-sm font-medium text-gray-800 mb-4">Is it a Coursework?</label><div class="flex items-center space-x-6 mt-2"><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="coursework" checked><span class="text-sm font-medium text-gray-800">Yes</span></label><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="coursework"><span class="text-sm font-medium text-gray-800">No</span></label></div></div>
+                            <div class="col-span-12 md:col-span-6"><label class="block text-sm font-medium text-gray-800 mb-2">If yes, which subject is it? <span class="text-[#8F1329]">*Required</span></label><input type="text" data-track="true" placeholder="e.g. SD3781 Interface Design" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div>
+                            <div class="col-span-12 md:col-span-6"><label class="block text-sm font-medium text-gray-800 mb-2">Tutor's name <span class="text-[#8F1329]">*Required</span></label><input type="text" data-track="true" placeholder="Enter your Tutor's Name" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div>
+                            <div class="col-span-12 md:col-span-6"><label class="block text-sm font-medium text-gray-800 mb-4">Is it a Group Project?</label><div class="flex items-center space-x-6 mt-2"><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="group_project" id="radio-individual" checked><span class="text-sm font-medium text-gray-800">Individual</span></label><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="group_project" id="radio-group"><span class="text-sm font-medium text-gray-800">In Group</span></label></div></div>
+                            <div class="col-span-12 md:col-span-6"><label class="block text-sm font-medium text-gray-800 mb-2">If in group, how many are there? <span class="text-[#8F1329]">*Required</span></label><div class="relative"><input type="number" id="group-size-input" placeholder="Enter number of group members" disabled class="w-full bg-gray-100 opacity-50 border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none cursor-not-allowed transition-colors"><svg id="lock-icon" class="w-5 h-5 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg></div></div>
+                        </div>
+                    </div>
+                    <div id="group-participants-section" class="bg-white rounded-[2rem] p-10 shadow-sm mb-8 hidden panel-transition">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Group Participants</h3>
+                        <p class="text-sm font-medium text-gray-800 mb-4">Participant 1 - Student Info</p>
+                        <div class="grid grid-cols-12 gap-x-6 gap-y-6 mb-6">
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Last name <span class="text-[#8F1329]">*Required</span></label><input type="text" placeholder="e.g. Chan" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">First name <span class="text-[#8F1329]">*Required</span></label><input type="text" placeholder="e.g. Tai Man" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div>
+                            <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Student ID <span class="text-[#8F1329]">*Required</span></label><input type="text" placeholder="Enter your Student ID" class="w-full bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div>
+                        </div>
+                        <div class="flex justify-end"><button class="bg-white border border-gray-200 text-gray-800 px-6 py-3 rounded-full text-sm font-medium flex items-center space-x-2 shadow-sm hover:bg-gray-50 transition"><span>Add a member</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg></button></div>
+                    </div>
+                    <div class="flex flex-col items-end pb-10">
+                        <p class="text-sm text-gray-400 mb-4">All progress are automatically saved.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                            <button onclick="navigateTo('view-4')" class="w-full bg-white text-[#3B82F6] font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-blue-50 transition">Save Draft and Leave</button>
+                            <button onclick="navigateTo('view-7')" class="w-full bg-white text-gray-800 font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-gray-50 transition">Back to Previous Page</button>
+                            <button id="btn-confirm-sec2" onclick="navigateWithLoading('view-9', 1000)" class="w-full bg-gray-300 text-white font-bold rounded-full py-4 shadow-sm cursor-not-allowed transition-colors">Confirm & Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 9: Section 3 -->
+        <!-- ========================================== -->
+        <div id="view-9" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-10 lg:p-14">
+                <div class="max-w-[1100px] mx-auto">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
+                        <div class="mb-6 lg:mb-0"><h1 class="text-3xl font-bold text-gray-900 mb-1">Create New Application</h1><h2 class="text-xl font-bold text-gray-800">Section 3</h2></div>
+                        <div class="flex space-x-2 w-full lg:w-3/5">
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Applicant<br>Information</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Competition &<br>Project Details</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight mt-1.5">Funding</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-gray-200 rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-500 text-center leading-tight">Review &<br>Declaration</span></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                        <div class="bg-white rounded-[2rem] p-10 shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-900 mb-8">Entrance Fee's Subsidy</h3>
+                            <div class="mb-8"><label class="block text-sm font-medium text-gray-800 mb-4">Are you applying for?</label><div class="flex items-center space-x-6"><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="entrance_fee" checked><span class="text-sm font-medium text-gray-800">Yes</span></label><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="entrance_fee"><span class="text-sm font-medium text-gray-800">No</span></label></div></div>
+                            <div class="mb-8"><label class="block text-sm font-medium text-gray-800 mb-2">Amount of Fee <span class="text-[#8F1329]">*Required</span></label><div class="flex space-x-4"><div class="relative w-32"><select class="w-full bg-white border border-gray-200 rounded-2xl pl-5 pr-8 py-4 text-gray-800 font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"><option value="HKD">HKD</option><option value="EUR">EUR</option><option value="USD">USD</option></select><svg class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div><input type="number" placeholder="Type Value" class="flex-1 bg-[#F4F4F5] border-none rounded-2xl px-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div></div>
+                            <div><label class="block text-sm font-medium text-gray-400 mb-2">Estimate Amount in HKD</label><div class="flex space-x-4"><div class="relative w-32"><select disabled class="w-full bg-white border border-gray-100 rounded-2xl pl-5 pr-8 py-4 text-gray-400 font-medium appearance-none cursor-not-allowed"><option>HKD</option></select><svg class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div><input type="text" value="-" disabled class="flex-1 bg-white border border-gray-100 rounded-2xl px-5 py-4 text-gray-400 font-medium cursor-not-allowed text-center"></div></div>
+                        </div>
+                        <div class="bg-white rounded-[2rem] p-10 shadow-sm">
+                            <h3 class="text-xl font-bold text-gray-900 mb-8">Shipping Allowance</h3>
+                            <div class="mb-8"><label class="block text-sm font-medium text-gray-800 mb-4">Are you applying for?</label><div class="flex items-center space-x-6"><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="shipping" checked><span class="text-sm font-medium text-gray-800">Yes</span></label><label class="flex items-center space-x-2 cursor-pointer"><input type="radio" name="shipping"><span class="text-sm font-medium text-gray-800">No</span></label></div></div>
+                            <div><label class="block text-sm font-medium text-gray-800 mb-2">Estimate Amount <span class="text-[#8F1329]">*Required</span></label><div class="relative"><span class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-800 font-medium pointer-events-none">HKD$</span><input type="number" placeholder="Type Value" class="w-full bg-[#F4F4F5] border-none rounded-2xl pl-20 pr-5 py-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gray-200"></div></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end pb-10">
+                        <p class="text-sm text-gray-400 mb-4">All progress are automatically saved.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                            <button onclick="navigateTo('view-4')" class="w-full bg-white text-[#3B82F6] font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-blue-50 transition">Save Draft and Leave</button>
+                            <button onclick="navigateTo('view-8')" class="w-full bg-white text-gray-800 font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-gray-50 transition">Back to Previous Page</button>
+                            <button onclick="navigateWithLoading('view-10', 1500)" class="w-full bg-[#786F66] text-white font-bold rounded-full py-4 shadow-sm hover:bg-[#605851] transition">Confirm & Proceed to Review</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 10: Review -->
+        <!-- ========================================== -->
+        <div id="view-10" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-10 lg:p-14">
+                <div class="max-w-[1100px] mx-auto">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
+                        <div class="mb-6 lg:mb-0"><h1 class="text-3xl font-bold text-gray-900 mb-1">Create New Application</h1><h2 class="text-xl font-bold text-gray-800">Review</h2></div>
+                        <div class="flex space-x-2 w-full lg:w-3/5">
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Applicant<br>Information</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Competition &<br>Project Details</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight mt-1.5">Funding</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Review &<br>Declaration</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 rounded-2xl p-6 mb-10 flex items-start space-x-4"><svg class="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg><div><p class="text-base font-bold text-blue-800 mb-1">You are almost done!</p><p class="text-sm text-blue-700 leading-relaxed">Check all details you have inputted. If there is any mistake, please return to the previous sections to revise.</p></div></div>
+                    
+                    <!-- Section 1 Review -->
+                    <div class="mb-12">
+                        <div class="flex justify-between items-end mb-4"><div><h2 class="text-2xl font-bold text-gray-900">Section 1</h2><p class="text-sm font-medium text-gray-800">Applicant Information</p></div><button onclick="navigateTo('view-7')" class="bg-white border border-gray-200 text-gray-500 px-5 py-2.5 rounded-full text-sm font-medium flex items-center space-x-2 shadow-sm hover:bg-gray-50 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg><span>Back Section 1 & Edit</span></button></div>
+                        <div class="bg-white rounded-[2rem] p-10 shadow-sm">
+                            <div class="grid grid-cols-12 gap-x-6 gap-y-6 mb-10">
+                                <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">Last name</label><div class="relative"><input type="text" value="Chiang" disabled class="w-full bg-[#F9F9F9] border-none rounded-2xl px-5 py-4 text-gray-400 font-medium cursor-not-allowed"><svg class="w-4 h-4 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg></div></div>
+                                <div class="col-span-12 md:col-span-4"><label class="block text-sm font-medium text-gray-800 mb-2">First name</label><div class="relative"><input type="text" value="Shing Hang Issac" disabled class="w-full bg-[#F9F9F9] border-none rounded-2xl px-5 py-4 text-gray-400 font-medium cursor-not-allowed"><svg class="w-4 h-4 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg></div></div>
+                                <div class="col-span-12 md:col-span-4 relative"><label class="block text-sm font-medium text-gray-800 mb-4">Gender</label><svg class="w-4 h-4 absolute right-5 top-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg><div class="flex items-center space-x-6 mt-2"><label class="flex items-center space-x-2"><input type="radio" checked disabled><span class="text-sm font-medium text-gray-400">Male</span></label></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-end pb-10">
+                        <p class="text-sm text-gray-400 mb-6 text-right max-w-3xl">Please note that you are not allowed to revise once you scroll to confirm and proceed to declaration page, you will only be able to revise again if your application is requested to do so.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                            <button onclick="navigateTo('view-4')" class="w-full bg-white text-[#3B82F6] font-bold rounded-full py-4 shadow-sm border border-gray-100 hover:bg-blue-50 transition">Save Draft and Leave</button>
+                            <button onclick="navigateWithLoading('view-11', 1000)" class="w-full bg-[#3B82F6] text-white font-bold rounded-full py-4 shadow-sm hover:bg-blue-600 transition">Confirm & Proceed</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 11: Signature -->
+        <!-- ========================================== -->
+        <div id="view-11" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-20 shadow-sm h-full justify-between">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><path d="M14 22.6C14 19.2397 14 17.5595 14.654 16.2761C15.2292 15.1471 16.1471 14.2292 17.2761 13.654C18.5595 13 20.2397 13 23.6 13H55.4C58.7603 13 60.4405 13 61.7239 13.654C62.8529 14.2292 63.7708 15.1471 64.346 16.2761C65 17.5595 65 19.2397 65 22.6V54.4C65 57.7603 65 59.4405 64.346 60.7239C63.7708 61.8529 62.8529 62.7708 61.7239 63.346C60.4405 64 58.7603 64 55.4 64H23.6C20.2397 64 18.5595 64 17.2761 63.346C16.1471 62.7708 15.2292 61.8529 14.654 60.7239C14 59.4405 14 57.7603 14 54.4V22.6Z"/><path d="M14 81C14 78.2044 14 76.8065 14.4567 75.7039C15.0657 74.2337 16.2337 73.0657 17.7039 72.4567C18.8065 72 20.2044 72 23 72H56C58.7957 72 60.1935 72 61.2961 72.4567C62.7663 73.0657 63.9343 74.2337 64.5433 75.7039C65 76.8065 65 78.2044 65 81V81C65 83.7956 65 85.1935 64.5433 86.2961C63.9343 87.7663 62.7663 88.9343 61.2961 89.5433C60.1935 90 58.7957 90 56 90H23C20.2044 90 18.8065 90 17.7039 89.5433C16.2337 88.9343 15.0657 87.7663 14.4567 86.2961C14 85.1935 14 83.7956 14 81V81Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-5')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 95 95" fill="currentColor"><path d="M47.5 18C57.4411 18 65.5 26.0589 65.5 36C65.5 45.9411 57.4411 54 47.5 54C37.5589 54 29.5 45.9411 29.5 36C29.5 26.0589 37.5589 18 47.5 18Z"/></svg></a>
+                    </nav>
+                </div>
+                <div class="flex flex-col items-center space-y-6 w-full">
+                    <button class="w-14 h-12 bg-[#786F66] text-white rounded-3xl flex items-center justify-center shadow-lg"><svg class="w-7 h-7" viewBox="0 0 64 52" fill="none"><path d="M40 26.0256H32.0256M32.0256 26.0256H24M32.0256 26.0256V18M32.0256 26.0256V34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+                    <button onclick="showSignOut()" class="w-12 h-12 flex items-center justify-center rounded-xl text-[#8F1329] hover:bg-red-50 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </aside>
+            <main class="flex-1 h-full overflow-y-auto p-10 lg:p-14">
+                <div class="max-w-[1100px] mx-auto">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end mb-10">
+                        <div class="mb-6 lg:mb-0"><h1 class="text-3xl font-bold text-gray-900 mb-1">Create New Application</h1><h2 class="text-xl font-bold text-gray-800">End of Application Process</h2></div>
+                        <div class="flex space-x-2 w-full lg:w-3/5">
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Applicant<br>Information</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Competition &<br>Project Details</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight mt-1.5">Funding</span></div>
+                            <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Review &<br>Declaration</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-[2rem] p-10 shadow-sm mb-8">
+                        <div class="space-y-6">
+                            <label class="flex items-start space-x-4 cursor-pointer custom-checkbox group"><input type="checkbox" class="hidden" checked><div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors group-hover:border-[#3B82F6]"><svg class="w-3.5 h-3.5 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg></div><span class="text-lg font-medium text-gray-900 leading-snug">I declare that this entry is not supported by any other financial scheme(s)</span></label>
+                            <label class="flex items-start space-x-4 cursor-pointer custom-checkbox group"><input type="checkbox" class="hidden" checked><div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors group-hover:border-[#3B82F6]"><svg class="w-3.5 h-3.5 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg></div><span class="text-lg font-medium text-gray-900 leading-snug">I confirm that this application complies with the terms and regulations of the Scheme document. I understand and agree that should there be any violation of the terms the application or any approved amount shall be cancelled.</span></label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[2rem] p-10 shadow-sm mb-12">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-2xl font-bold text-gray-900">Digital Signature</h3>
+                            <button id="btn-auto-sign" class="flex items-center space-x-2 text-purple-600 hover:text-purple-700 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg><span class="font-bold text-lg">Auto Sign</span></button>
+                        </div>
+                        <div class="flex bg-gray-100 rounded-full p-1.5 mb-6">
+                            <button id="tab-draw" class="flex-1 bg-white rounded-full py-3 text-sm font-bold text-gray-900 shadow-sm transition">Draw Signature</button>
+                            <button id="tab-type" class="flex-1 text-gray-400 rounded-full py-3 text-sm font-medium hover:text-gray-600 transition">Type Signature</button>
+                        </div>
+                        <div class="relative w-full h-64 border-2 border-gray-200 rounded-2xl overflow-hidden bg-white mb-6">
+                            <div id="area-draw" class="absolute inset-0 w-full h-full"><canvas id="signature-pad" class="w-full h-full cursor-crosshair"></canvas><div id="placeholder-text" class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="text-gray-300 font-medium text-xl">Sign Here</span></div></div>
+                            <div id="area-type" class="absolute inset-0 w-full h-full hidden bg-white"><input type="text" id="type-input" placeholder="Type your name here..." class="w-full h-full text-center text-5xl font-signature text-gray-800 focus:outline-none placeholder-gray-300"></div>
+                        </div>
+                        <p class="text-sm text-gray-400 leading-relaxed">I agree that the signature and initials will be the electronic representation of my signature and initials for all purposes when I (or my agent) use them on documents, including legally binding contracts - just the same as a pen-and-paper signature or initial.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full pb-10">
+                        <button onclick="navigateTo('view-4')" class="w-full bg-white text-[#3B82F6] font-bold rounded-full py-5 text-lg shadow-sm border border-gray-100 hover:bg-blue-50 transition">Save and Leave</button>
+                        <button onclick="navigateWithLoading('view-12', 2000)" class="w-full bg-[#786F66] text-white font-bold rounded-full py-5 text-lg shadow-sm hover:bg-[#605851] transition">Confirm & Submit</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 12: Success -->
+        <!-- ========================================== -->
+        <div id="view-12" class="view-screen flex w-full bg-[#F8F8F8] fade-out">
+            <main class="flex-1 h-full flex flex-col p-10 lg:p-14 overflow-y-auto">
+                <div class="max-w-[1100px] mx-auto w-full flex flex-col lg:flex-row lg:justify-between lg:items-end mb-8 flex-shrink-0">
+                    <div class="mb-6 lg:mb-0"><h1 class="text-3xl font-bold text-gray-900 mb-1">Create New Application</h1><h2 class="text-xl font-bold text-gray-800">Review</h2></div>
+                    <div class="flex space-x-2 w-full lg:w-3/5">
+                        <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Applicant<br>Information</span></div>
+                        <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Competition &<br>Project Details</span></div>
+                        <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight mt-1.5">Funding</span></div>
+                        <div class="flex-1 flex flex-col items-center"><div class="w-full h-1.5 bg-[#3B82F6] rounded-full mb-2"></div><span class="text-[10px] font-medium text-gray-900 text-center leading-tight">Review &<br>Declaration</span></div>
+                    </div>
+                </div>
+                <div class="flex-1 flex items-center justify-center w-full">
+                    <div class="bg-white rounded-[2.5rem] p-12 md:p-16 w-full max-w-[800px] shadow-sm flex flex-col">
+                        <div class="mb-8"><svg width="96" height="96" viewBox="0 0 96 96" fill="none"><circle cx="48" cy="48" r="44" stroke="#3B82F6" stroke-width="8"/><path d="M28 48L42 62L68 34" stroke="#3B82F6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                        <h1 class="text-4xl md:text-5xl font-bold text-black mb-6 tracking-tight leading-tight">Application Process Has Been Completed</h1>
+                        <p class="text-xl md:text-2xl font-medium text-black mb-2">You have successfully created a new application.</p>
+                        <p class="text-lg md:text-xl text-gray-400 mb-16 leading-relaxed">Application will be reviewed in 3-5 working days, you will be notified once your application has update. You may view your application status in My Dashboard.</p>
+                        <button onclick="navigateWithLoading('view-4', 1500)" class="w-full bg-[#786F66] text-white font-medium rounded-full py-5 text-lg hover:bg-[#605851] transition shadow-md">End Application Section</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 13: Status Detail (Smart Animate) -->
+        <!-- ========================================== -->
+        <div id="view-13" class="view-screen flex w-full bg-white fade-out">
+            <aside class="w-[88px] bg-white border-r border-gray-200 flex flex-col items-center py-6 flex-shrink-0 z-50 shadow-sm h-full justify-between relative">
+                <div class="flex flex-col items-center w-full">
+                    <div class="mb-10 cursor-pointer"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 0L48 24L24 48L0 24L24 0Z" fill="#8F1329"/><path d="M24 9.6L38.4 24L24 38.4L9.6 24L24 9.6Z" fill="white"/><path d="M24 14.4L33.6 24L24 33.6L14.4 24L24 14.4Z" fill="#8F1329"/></svg></div>
+                    <nav class="flex flex-col space-y-6 w-full items-center">
+                        <a href="#" onclick="navigateTo('view-3')" class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 transition"><svg class="w-7 h-7" viewBox="0 0 104 104" fill="currentColor"><path d="M11.7627 75.4868C12.4535 69.7216 14.2776 67.8941 17.2604 65.338C18.2643 64.4778 19.592 63.8186 20.9119 63.3227C22.0715 62.887 22.6513 62.6691 23.8242 62.6504C24.6545 62.6372 26.0746 62.9443 26.8252 63.2994C27.8856 63.8012 28.5466 64.4622 29.8686 65.7842L38.1669 74.0826C39.489 75.4046 40.15 76.0656 40.6517 77.1259C41.0069 77.8765 41.314 79.2966 41.3007 80.1269C41.282 81.2998 41.0642 81.8796 40.6284 83.0392C40.1325 84.3592 39.4734 85.6869 38.6131 86.6907C36.057 89.6735 34.2295 91.4977 28.4644 92.1885C25.4732 92.5469 21.7701 91.8534 18.8988 91.1031C17.5564 90.7523 16.8852 90.5768 15.9745 89.9886C15.3365 89.5766 14.3746 88.6147 13.9625 87.9767C13.3743 87.066 13.1989 86.3948 12.8481 85.0523C12.0977 82.1811 11.4042 78.4779 11.7627 75.4868Z"/></svg></a>
+                        <a href="#" onclick="navigateTo('view-4')" class="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 text-gray-800 transition"><svg class="w-6 h-7" viewBox="0 0 79 104" fill="currentColor"><mask id="stroke0_42_9923" fill="white"><path d="M0 30.4C0 19.759 0 14.4385 2.07088 10.3742C3.89247 6.7991 6.7991 3.89247 10.3742 2.07088C14.4385 0 19.759 0 30.4 0H48.6C59.241 0 64.5615 0 68.6258 2.07088C72.2009 3.89247 75.1075 6.7991 76.9291 10.3742C79 14.4385 79 19.759 79 30.4V73.6C79 84.241 79 89.5615 76.9291 93.6258C75.1075 97.2009 72.2009 100.108 68.6258 101.929C64.5615 104 59.241 104 48.6 104H30.4C19.759 104 14.4385 104 10.3742 101.929C6.7991 100.108 3.89247 97.2009 2.07088 93.6258C0 89.5615 0 84.241 0 73.6V30.4Z"/></mask><path d="M30.4 104H48.6C59.241 104 64.5615 104 68.6258 101.929C72.2009 100.108 75.1075 97.2009 76.9291 93.6258C79 89.5615 79 84.241 79 73.6V30.4C79 19.759 79 14.4385 76.9291 10.3742C75.1075 6.7991 72.2009 3.89247 6
